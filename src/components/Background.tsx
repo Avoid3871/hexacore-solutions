@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { state } from '../state';
 import { createSprite, renderFlower, type Flower, type Sprite } from '../flowers';
+import { createBee, updateAndDrawBee, type FlowerTarget } from '../bee';
 
 const CELL_W = 8;
 const CELL_H = 13;
@@ -15,10 +16,11 @@ const FLOWERS: Flower[] = [
   { x: 0.13, y: 1.02, r: 150, kind: 'lotus', stem: 2.2, depth: 0.55, hero: true, lean: 0.5, seed: 1 },
   { x: 0.34, y: 1.16, r: 90, kind: 'daisy', stem: 2.6, depth: 0.8, hero: true, lean: -0.4, seed: 2 },
   { x: 0.7, y: 1.04, r: 185, kind: 'rose', stem: 2.0, depth: 0.45, hero: true, lean: -0.6, seed: 3 },
-  { x: 0.91, y: 1.2, r: 105, kind: 'anemone', stem: 2.6, depth: 0.7, hero: true, lean: 0.3, seed: 4 },
-  { x: 0.05, y: 0.33, r: 120, kind: 'daisy', stem: 2.1, depth: 1, hero: false, lean: 0.6, seed: 5 },
-  { x: 0.95, y: 0.52, r: 140, kind: 'lotus', stem: 2.1, depth: 1, hero: false, lean: -0.6, seed: 6 },
-  { x: 0.06, y: 0.74, r: 110, kind: 'anemone', stem: 2.1, depth: 1, hero: false, lean: 0.5, seed: 7 },
+  { x: 0.89, y: 1.2, r: 105, kind: 'anemone', stem: 2.6, depth: 0.7, hero: true, lean: 0.25, seed: 4 },
+  { x: 0.11, y: 0.33, r: 120, kind: 'daisy', stem: 2.1, depth: 1, hero: false, lean: 0.55, seed: 5 },
+  { x: 0.88, y: 0.52, r: 140, kind: 'lotus', stem: 2.1, depth: 1, hero: false, lean: -0.55, seed: 6 },
+  { x: 0.12, y: 0.73, r: 115, kind: 'anemone', stem: 2.1, depth: 1, hero: false, lean: 0.5, seed: 7 },
+  { x: 0.86, y: 0.91, r: 130, kind: 'rose', stem: 2.0, depth: 1, hero: false, lean: -0.5, seed: 8 },
 ];
 
 export const Background = () => {
@@ -34,11 +36,11 @@ export const Background = () => {
     let scale = 1;
     let docH = 1;
     let sy = 0; // smoothed scroll
-    let head = 0; // line head, document space
     let rings: HTMLElement[] = [];
     let frames: HTMLElement[] = [];
     let frameCount = 0;
     let sprites: Sprite[] = [];
+    const bee = createBee();
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduced) state.intro = 1;
 
@@ -63,37 +65,9 @@ export const Background = () => {
       refresh();
     };
 
-    const pathX = (y: number) =>
-      W * 0.5 + Math.sin(y * 0.0042) * W * 0.34 + Math.sin(y * 0.011) * W * 0.05;
-    const pathSlope = (y: number) =>
-      Math.cos(y * 0.0042) * 0.0042 * W * 0.34 + Math.cos(y * 0.011) * 0.011 * W * 0.05;
-
     const put = (ch: string, x: number, y: number, a: number) => {
       ctx.globalAlpha = a;
       ctx.fillText(ch, snapX(x), snapY(y));
-    };
-
-    const drawLine = () => {
-      const start = Math.max(0, sy - 40);
-      const end = Math.min(head, sy + vh + 40);
-      let y = start;
-      while (y <= end) {
-        const slope = pathSlope(y);
-        const x = pathX(y);
-        const ch = Math.abs(slope) > 2.2 ? '-' : Math.abs(slope) < 0.45 ? '|' : slope > 0 ? '\\' : '/';
-        const d = head - y;
-        const a = 0.14 + 0.6 * Math.exp(-d / (vh * 0.55));
-        put(ch, x, y - sy, a);
-        y += CELL_H / Math.sqrt(1 + slope * slope);
-      }
-      // glowing head
-      if (head > 0 && head <= docH) {
-        const hx = pathX(head);
-        const hy = head - sy;
-        put('@', hx, hy, 1);
-        put('*', hx - CELL_W, hy - 2, 0.5);
-        put('*', hx + CELL_W, hy + 2, 0.5);
-      }
     };
 
     const drawRings = () => {
@@ -145,7 +119,7 @@ export const Background = () => {
       }
     };
 
-    const drawFlower = (f: Flower, sp: Sprite, baseX: number, baseY: number, bloom: number, time: number) => {
+    const drawFlower = (f: Flower, sp: Sprite, baseX: number, baseY: number, bloom: number, sway: number) => {
       const R = f.r * scale;
       const top = baseY - sp.oy;
       if (top > vh + 60 || baseY < -60) return;
@@ -157,7 +131,6 @@ export const Background = () => {
         renderFlower(f, R, qKey / 120, sp, dpr);
       }
 
-      const sway = Math.sin(time * 0.55 + f.seed * 1.9) * 0.018;
       ctx.save();
       ctx.translate(baseX, baseY);
       ctx.rotate(sway);
@@ -169,29 +142,43 @@ export const Background = () => {
       const target = window.scrollY;
       sy += (target - sy) * 0.12;
       if (Math.abs(target - sy) < 0.1) sy = target;
-      head += (target + vh * 0.78 - head) * 0.07;
 
       if (frameCount++ % 90 === 0) refresh();
 
       ctx.clearRect(0, 0, W, H);
 
       const heroScroll = clamp(sy / (vh * 0.85));
+      const flowerTargets: FlowerTarget[] = [];
 
       for (let i = 0; i < FLOWERS.length; i++) {
         const f = FLOWERS[i];
         const sp = sprites[i];
         if (!sp) continue;
+        const R = f.r * scale;
         const baseX = f.x * W;
+        const sway = Math.sin(time * 0.55 + f.seed * 1.9) * 0.018;
+
+        let baseY: number;
+        let bloom: number;
         if (f.hero) {
-          const baseY = f.y * vh - sy * f.depth;
-          const bloom = clamp(state.intro * 0.42 + heroScroll * 0.58);
-          drawFlower(f, sp, baseX, baseY, bloom, time);
+          baseY = f.y * vh - sy * f.depth;
+          bloom = clamp(state.intro * 0.42 + heroScroll * 0.58);
         } else {
           const docY = f.y * docH;
-          const baseY = docY - sy + (docY - sy - vh * 0.5) * 0.2;
-          const bloom = clamp((vh * 1.05 - (baseY - f.r * scale * f.stem)) / (vh * 0.75));
-          drawFlower(f, sp, baseX, baseY, bloom, time);
+          baseY = docY - sy + (docY - sy - vh * 0.5) * 0.2;
+          bloom = clamp((vh * 1.05 - (baseY - R * f.stem)) / (vh * 0.75));
         }
+
+        drawFlower(f, sp, baseX, baseY, bloom, sway);
+
+        // Compute blossom head position in screen space for the bee's flight & orbit
+        const stemProg = Math.max(0.75, easeOut(clamp(bloom / 0.45)));
+        const dx0 = f.lean * R * 0.35 * stemProg;
+        const dy0 = -R * f.stem * stemProg;
+        const hx = baseX + dx0 * Math.cos(sway) - dy0 * Math.sin(sway);
+        const hy = baseY + dx0 * Math.sin(sway) + dy0 * Math.cos(sway);
+
+        flowerTargets.push({ hx, hy, r: R, bloom, hero: f.hero });
       }
 
       ctx.font = `${CELL_H - 1}px "Space Mono", monospace`;
@@ -199,15 +186,17 @@ export const Background = () => {
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#fff';
 
-      drawLine();
       drawRings();
       drawFrames();
+
+      // Update and render the ASCII Bee + circular flower orbits + trail
+      updateAndDrawBee(ctx, bee, flowerTargets, sy, vh, docH, W, H, time, state.intro);
+
       ctx.globalAlpha = 1;
     };
 
     resize();
     sy = window.scrollY;
-    head = sy + vh * 0.2;
     gsap.ticker.add(tick);
     window.addEventListener('resize', resize);
     const ro = new ResizeObserver(refresh);
