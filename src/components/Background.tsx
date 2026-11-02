@@ -13,14 +13,14 @@ const snapX = (x: number) => Math.round(x / CELL_W) * CELL_W;
 const snapY = (y: number) => Math.round(y / CELL_H) * CELL_H;
 
 const FLOWERS: Flower[] = [
-  { x: 0.13, y: 1.02, r: 150, kind: 'lotus', stem: 2.2, depth: 0.55, hero: true, lean: 0.5, seed: 1 },
-  { x: 0.34, y: 1.16, r: 90, kind: 'daisy', stem: 2.6, depth: 0.8, hero: true, lean: -0.4, seed: 2 },
-  { x: 0.7, y: 1.04, r: 185, kind: 'rose', stem: 2.0, depth: 0.45, hero: true, lean: -0.6, seed: 3 },
-  { x: 0.89, y: 1.2, r: 105, kind: 'anemone', stem: 2.6, depth: 0.7, hero: true, lean: 0.25, seed: 4 },
-  { x: 0.11, y: 0.33, r: 120, kind: 'daisy', stem: 2.1, depth: 1, hero: false, lean: 0.55, seed: 5 },
-  { x: 0.88, y: 0.52, r: 140, kind: 'lotus', stem: 2.1, depth: 1, hero: false, lean: -0.55, seed: 6 },
-  { x: 0.12, y: 0.73, r: 115, kind: 'anemone', stem: 2.1, depth: 1, hero: false, lean: 0.5, seed: 7 },
-  { x: 0.86, y: 0.91, r: 130, kind: 'rose', stem: 2.0, depth: 1, hero: false, lean: -0.5, seed: 8 },
+  { x: 0.14, y: 0.94, r: 165, kind: 'lotus', stem: 2.0, depth: 0.5, hero: true, lean: 0.45, seed: 1 },
+  { x: 0.35, y: 1.02, r: 110, kind: 'daisy', stem: 2.3, depth: 0.72, hero: true, lean: -0.35, seed: 2 },
+  { x: 0.69, y: 0.95, r: 195, kind: 'rose', stem: 1.85, depth: 0.42, hero: true, lean: -0.5, seed: 3 },
+  { x: 0.88, y: 1.04, r: 125, kind: 'anemone', stem: 2.2, depth: 0.65, hero: true, lean: 0.25, seed: 4 },
+  { x: 0.48, y: 0.31, r: 105, kind: 'daisy', stem: 1.35, depth: 1, hero: false, lean: -0.15, seed: 5, anchor: 'services-row-1' },
+  { x: 0.85, y: 0.6, r: 155, kind: 'lotus', stem: 1.9, depth: 1, hero: false, lean: -0.35, seed: 6, anchor: 'statement' },
+  { x: 0.15, y: 0.76, r: 130, kind: 'anemone', stem: 2.0, depth: 1, hero: false, lean: 0.45, seed: 7 },
+  { x: 0.85, y: 0.92, r: 145, kind: 'rose', stem: 1.9, depth: 1, hero: false, lean: -0.45, seed: 8 },
 ];
 
 export const Background = () => {
@@ -38,6 +38,7 @@ export const Background = () => {
     let sy = 0; // smoothed scroll
     let rings: HTMLElement[] = [];
     let frames: HTMLElement[] = [];
+    let firstServiceRow: HTMLElement | null = null;
     let frameCount = 0;
     let sprites: Sprite[] = [];
     const bee = createBee();
@@ -47,6 +48,7 @@ export const Background = () => {
     const refresh = () => {
       rings = Array.from(document.querySelectorAll<HTMLElement>('[data-ring]'));
       frames = Array.from(document.querySelectorAll<HTMLElement>('[data-frame]'));
+      firstServiceRow = document.querySelector<HTMLElement>('.sv-row');
       docH = document.documentElement.scrollHeight;
     };
 
@@ -162,11 +164,19 @@ export const Background = () => {
         let bloom: number;
         if (f.hero) {
           baseY = f.y * vh - sy * f.depth;
-          bloom = clamp(state.intro * 0.42 + heroScroll * 0.58);
+          bloom = clamp(state.intro * 0.85 + heroScroll * 0.15);
         } else {
-          const docY = f.y * docH;
-          baseY = docY - sy + (docY - sy - vh * 0.5) * 0.2;
-          bloom = clamp((vh * 1.05 - (baseY - R * f.stem)) / (vh * 0.75));
+          if (f.anchor === 'services-row-1' && firstServiceRow) {
+            const rect = firstServiceRow.getBoundingClientRect();
+            baseY = rect.bottom;
+          } else if (f.anchor === 'statement' && frames[0]) {
+            const rect = frames[0].getBoundingClientRect();
+            baseY = rect.top + rect.height * 0.52 + R * f.stem;
+          } else {
+            const docY = f.y * docH;
+            baseY = docY - sy + (docY - sy - vh * 0.5) * 0.2;
+          }
+          bloom = clamp((vh * 1.18 - (baseY - R * f.stem)) / (vh * 0.65));
         }
 
         drawFlower(f, sp, baseX, baseY, bloom, sway);

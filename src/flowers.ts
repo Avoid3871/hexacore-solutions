@@ -1,6 +1,6 @@
-// Detailed ASCII flower renderer.
-// Each flower is rasterised onto a fine character grid and cached in an
-// offscreen sprite; the sprite is only redrawn when its bloom value changes.
+// Detailed colored ASCII flower renderer.
+// Each flower is rasterised onto a fine character grid with vibrant botanical colors
+// and cached in an offscreen sprite; the sprite is only redrawn when its bloom value changes.
 
 export type Kind = 'daisy' | 'lotus' | 'rose' | 'anemone';
 type Shape = 'round' | 'pointed' | 'thin';
@@ -15,6 +15,7 @@ export interface Flower {
   hero: boolean;
   lean: number; // -1 … 1
   seed: number;
+  anchor?: 'services-row-1' | 'statement';
 }
 
 interface Layer {
@@ -25,11 +26,20 @@ interface Layer {
   rot: number;
   delay: number;
   bright: number;
+  outlineCol: string;
+  veinCol: string;
+  fillInnerCol: string;
+  fillOuterCol: string;
 }
 
 interface Spec {
   core: number;
   coreType: 'seeds' | 'swirl' | 'stamens';
+  coreCenterCol: string;
+  coreOuterCol: string;
+  coreRimCol: string;
+  stamenFilamentCol: string;
+  stamenAntherCol: string;
   layers: Layer[];
 }
 
@@ -43,9 +53,16 @@ export interface Sprite {
   h: number;
 }
 
-// Fine grid
-const FS = 9;
-const FW = FS * 0.612;
+// Vibrant botanical stem & foliage colors
+const COL_STEM_MAIN = '#4ade80';
+const COL_STEM_SHADE = '#22c55e';
+const COL_LEAF_EDGE = '#86efac';
+const COL_LEAF_VEIN = '#bbf7d0';
+const COL_LEAF_FILL = '#4ade80';
+
+// Crisp character grid
+const FS = 10;
+const FW = FS * 0.61;
 const FH = FS;
 const SQUASH = 0.86; // slight perspective tilt of the flower heads
 
@@ -61,36 +78,188 @@ const SPECS: Record<Kind, Spec> = {
   daisy: {
     core: 0.26,
     coreType: 'seeds',
+    coreCenterCol: '#f59e0b',
+    coreOuterCol: '#fbbf24',
+    coreRimCol: '#fef08a',
+    stamenFilamentCol: '#fcd34d',
+    stamenAntherCol: '#fef08a',
     layers: [
-      { n: 22, len: 1, width: 0.09, shape: 'thin', rot: 0, delay: 0, bright: 0.8 },
-      { n: 22, len: 0.84, width: 0.085, shape: 'thin', rot: Math.PI / 22, delay: 0.12, bright: 1 },
+      {
+        n: 22,
+        len: 1,
+        width: 0.095,
+        shape: 'thin',
+        rot: 0,
+        delay: 0,
+        bright: 0.92,
+        outlineCol: '#ffffff',
+        veinCol: '#fde68a',
+        fillInnerCol: '#fef08a',
+        fillOuterCol: '#fffbeb',
+      },
+      {
+        n: 22,
+        len: 0.84,
+        width: 0.09,
+        shape: 'thin',
+        rot: Math.PI / 22,
+        delay: 0.12,
+        bright: 1,
+        outlineCol: '#ffffff',
+        veinCol: '#fef08a',
+        fillInnerCol: '#fde047',
+        fillOuterCol: '#ffffff',
+      },
     ],
   },
   lotus: {
-    core: 0.13,
+    core: 0.14,
     coreType: 'stamens',
+    coreCenterCol: '#f59e0b',
+    coreOuterCol: '#fbbf24',
+    coreRimCol: '#fde047',
+    stamenFilamentCol: '#fdba74',
+    stamenAntherCol: '#fef08a',
     layers: [
-      { n: 8, len: 1, width: 0.25, shape: 'pointed', rot: 0, delay: 0, bright: 0.7 },
-      { n: 8, len: 0.74, width: 0.23, shape: 'pointed', rot: Math.PI / 8, delay: 0.14, bright: 0.85 },
-      { n: 5, len: 0.46, width: 0.22, shape: 'pointed', rot: 0.3, delay: 0.28, bright: 1 },
+      {
+        n: 8,
+        len: 1,
+        width: 0.26,
+        shape: 'pointed',
+        rot: 0,
+        delay: 0,
+        bright: 0.9,
+        outlineCol: '#fbcfe8',
+        veinCol: '#f472b6',
+        fillInnerCol: '#ec4899',
+        fillOuterCol: '#f9a8d4',
+      },
+      {
+        n: 8,
+        len: 0.74,
+        width: 0.24,
+        shape: 'pointed',
+        rot: Math.PI / 8,
+        delay: 0.14,
+        bright: 0.96,
+        outlineCol: '#fce7f3',
+        veinCol: '#f9a8d4',
+        fillInnerCol: '#f472b6',
+        fillOuterCol: '#fbcfe8',
+      },
+      {
+        n: 5,
+        len: 0.46,
+        width: 0.22,
+        shape: 'pointed',
+        rot: 0.3,
+        delay: 0.28,
+        bright: 1,
+        outlineCol: '#ffffff',
+        veinCol: '#fbcfe8',
+        fillInnerCol: '#f9a8d4',
+        fillOuterCol: '#fce7f3',
+      },
     ],
   },
   rose: {
     core: 0.3,
     coreType: 'swirl',
+    coreCenterCol: '#fb7185',
+    coreOuterCol: '#f43f5e',
+    coreRimCol: '#fecdd3',
+    stamenFilamentCol: '#fda4af',
+    stamenAntherCol: '#fef08a',
     layers: [
-      { n: 5, len: 1, width: 0.42, shape: 'round', rot: 0, delay: 0, bright: 0.65 },
-      { n: 5, len: 0.8, width: 0.4, shape: 'round', rot: GOLDEN, delay: 0.1, bright: 0.75 },
-      { n: 5, len: 0.6, width: 0.38, shape: 'round', rot: GOLDEN * 2, delay: 0.2, bright: 0.85 },
-      { n: 5, len: 0.42, width: 0.36, shape: 'round', rot: GOLDEN * 3, delay: 0.3, bright: 1 },
+      {
+        n: 5,
+        len: 1,
+        width: 0.42,
+        shape: 'round',
+        rot: 0,
+        delay: 0,
+        bright: 0.88,
+        outlineCol: '#fda4af',
+        veinCol: '#fb7185',
+        fillInnerCol: '#e11d48',
+        fillOuterCol: '#f43f5e',
+      },
+      {
+        n: 5,
+        len: 0.8,
+        width: 0.4,
+        shape: 'round',
+        rot: GOLDEN,
+        delay: 0.1,
+        bright: 0.92,
+        outlineCol: '#fecdd3',
+        veinCol: '#fda4af',
+        fillInnerCol: '#f43f5e',
+        fillOuterCol: '#fb7185',
+      },
+      {
+        n: 5,
+        len: 0.6,
+        width: 0.38,
+        shape: 'round',
+        rot: GOLDEN * 2,
+        delay: 0.2,
+        bright: 0.96,
+        outlineCol: '#ffe4e6',
+        veinCol: '#fecdd3',
+        fillInnerCol: '#fb7185',
+        fillOuterCol: '#fda4af',
+      },
+      {
+        n: 5,
+        len: 0.42,
+        width: 0.36,
+        shape: 'round',
+        rot: GOLDEN * 3,
+        delay: 0.3,
+        bright: 1,
+        outlineCol: '#fff1f2',
+        veinCol: '#ffe4e6',
+        fillInnerCol: '#fda4af',
+        fillOuterCol: '#fecdd3',
+      },
     ],
   },
   anemone: {
     core: 0.19,
     coreType: 'stamens',
+    coreCenterCol: '#818cf8',
+    coreOuterCol: '#a5b4fc',
+    coreRimCol: '#e0e7ff',
+    stamenFilamentCol: '#c7d2fe',
+    stamenAntherCol: '#fde047',
     layers: [
-      { n: 6, len: 1, width: 0.34, shape: 'round', rot: 0, delay: 0, bright: 0.8 },
-      { n: 6, len: 0.7, width: 0.3, shape: 'round', rot: Math.PI / 6, delay: 0.15, bright: 0.95 },
+      {
+        n: 6,
+        len: 1,
+        width: 0.35,
+        shape: 'round',
+        rot: 0,
+        delay: 0,
+        bright: 0.92,
+        outlineCol: '#e9d5ff',
+        veinCol: '#c084fc',
+        fillInnerCol: '#9333ea',
+        fillOuterCol: '#a855f7',
+      },
+      {
+        n: 6,
+        len: 0.7,
+        width: 0.31,
+        shape: 'round',
+        rot: Math.PI / 6,
+        delay: 0.15,
+        bright: 1,
+        outlineCol: '#f3e8ff',
+        veinCol: '#d8b4fe',
+        fillInnerCol: '#a855f7',
+        fillOuterCol: '#c084fc',
+      },
     ],
   },
 };
@@ -139,7 +308,7 @@ const sampleLayer = (
   const k = Math.round((th - base) / step);
   const ki = ((k % L.n) + L.n) % L.n;
 
-  const s0 = L.delay + hash(ki * 1.7 + li * 13.3) * 0.2;
+  const s0 = L.delay + hash(ki * 1.7 + li * 13.3) * 0.16;
   const unfold = easeOut(clamp((prog - s0) / (1 - s0)));
   if (unfold <= 0) return null;
 
@@ -161,34 +330,38 @@ const sampleLayer = (
   return { t, v, len, hw, axis, wslope };
 };
 
-const PETAL_FILL = ' .,:;-=+';
+// Fuller, more legible ASCII ramp for petal surfaces
+const PETAL_FILL = ' .:+*#%@';
 
-const petalChar = (h: Hit, L: Layer): [string, number] => {
+const petalChar = (h: Hit, L: Layer): [string, number, string] => {
   const { t, v, len, hw, axis, wslope } = h;
   const av = Math.abs(v);
   const sgn = v < 0 ? -1 : 1;
   const light = 0.5 + 0.5 * Math.cos(axis + 2.36); // light from upper left
 
-  // outline
-  if ((1 - t) * len < FW * 0.9) return [dirChar(...headDir(axis + Math.PI / 2)), 0.9 * L.bright];
-  if (hw - av < FW * 0.85) return [dirChar(...headDir(axis + Math.atan(sgn * wslope))), 0.85 * L.bright];
+  // Crisp bright outline
+  if ((1 - t) * len < FW * 0.95) return [dirChar(...headDir(axis + Math.PI / 2)), 1.0 * L.bright, L.outlineCol];
+  if (hw - av < FW * 0.9) return [dirChar(...headDir(axis + Math.atan(sgn * wslope))), 0.98 * L.bright, L.outlineCol];
 
-  // midrib
-  if (av < FW * 0.5 && t > 0.1 && t < 0.82) return [dirChar(...headDir(axis)), (0.4 + 0.2 * light) * L.bright];
-
-  // side veins, angled towards the tip
-  const period = len * 0.17;
-  const q = t * len - av * 1.5;
-  if (t < 0.85 && fract(q / period) * period < FW * 0.8) {
-    return [dirChar(...headDir(axis + Math.atan2(sgn, 1.5))), (0.22 + 0.15 * light) * L.bright];
+  // Midrib
+  if (av < FW * 0.55 && t > 0.08 && t < 0.84) {
+    return [dirChar(...headDir(axis)), (0.78 + 0.22 * light) * L.bright, L.veinCol];
   }
 
-  // shaded fill
+  // Side veins, angled towards the tip
+  const period = len * 0.17;
+  const q = t * len - av * 1.5;
+  if (t < 0.85 && fract(q / period) * period < FW * 0.85) {
+    return [dirChar(...headDir(axis + Math.atan2(sgn, 1.5))), (0.62 + 0.25 * light) * L.bright, L.veinCol];
+  }
+
+  // Shaded fill (inner base vs outer petal tone)
   const e = av / hw;
-  let s = (1 - e * e) * (0.55 + 0.45 * light) * (1 - 0.35 * t);
-  s *= 0.7 + 0.3 * Math.min(1, t * 3);
-  const idx = Math.min(PETAL_FILL.length - 1, Math.max(1, Math.floor(s * PETAL_FILL.length)));
-  return [PETAL_FILL[idx], (0.14 + 0.3 * s) * L.bright];
+  let s = (1 - e * e) * (0.55 + 0.45 * light) * (1 - 0.3 * t);
+  s *= 0.75 + 0.25 * Math.min(1, t * 3);
+  const idx = Math.min(PETAL_FILL.length - 1, Math.max(1, Math.floor(s * (PETAL_FILL.length - 1)) + 1));
+  const fillCol = t < 0.45 ? L.fillInnerCol : L.fillOuterCol;
+  return [PETAL_FILL[idx], (0.52 + 0.44 * s) * L.bright, fillCol];
 };
 
 const sampleHead = (
@@ -199,13 +372,13 @@ const sampleHead = (
   prog: number,
   rotBase: number,
   seed: number
-): [string, number] | null => {
+): [string, number, string] | null => {
   const coreProg = easeOut(clamp(prog / 0.5));
   const rc = R * spec.core * coreProg;
 
-  // Stamens: thin filaments with anthers
+  // Stamens: thin filaments with golden anthers
   if (spec.coreType === 'stamens') {
-    const sp = easeOut(clamp((prog - 0.4) / 0.6));
+    const sp = easeOut(clamp((prog - 0.35) / 0.65));
     if (sp > 0 && r > rc * 0.8) {
       const m = 18;
       const step = TAU / m;
@@ -215,8 +388,10 @@ const sampleHead = (
       const along = Math.cos(th - a) * r;
       const dperp = Math.abs(Math.sin(th - a)) * r;
       if (along > 0 && r < lenS + FH * 0.6) {
-        if (Math.abs(r - lenS) < FH * 0.55 && dperp < FW * 0.9) return [k % 3 === 0 ? '*' : 'o', 0.9];
-        if (dperp < FW * 0.45) return [dirChar(...headDir(a)), 0.55];
+        if (Math.abs(r - lenS) < FH * 0.55 && dperp < FW * 0.95) {
+          return [k % 3 === 0 ? '@' : 'o', 1.0, spec.stamenAntherCol];
+        }
+        if (dperp < FW * 0.5) return [dirChar(...headDir(a)), 0.85, spec.stamenFilamentCol];
       }
     }
   }
@@ -224,17 +399,21 @@ const sampleHead = (
   // Core disc
   if (spec.coreType !== 'swirl' && r < rc) {
     const rn = r / rc;
-    if (rc - r < FW * 0.9) return [dirChar(...headDir(th + Math.PI / 2)), 0.85];
+    if (rc - r < FW * 0.95) return [dirChar(...headDir(th + Math.PI / 2)), 1.0, spec.coreRimCol];
     if (spec.coreType === 'seeds') {
       // phyllotaxis-like crossing log spirals
       const lr = Math.log(r + 1) * 2.4;
       const f = Math.cos(8 * (th + lr)) * Math.cos(13 * (th - lr * 0.62));
-      if (f > 0.3) return [rn < 0.35 ? '@' : 'o', 0.6 + 0.3 * f];
-      if (f < -0.3) return ['.', 0.35];
-      return [':', 0.45];
+      if (f > 0.25) return [rn < 0.35 ? '@' : 'o', 0.88 + 0.12 * f, rn < 0.4 ? spec.coreCenterCol : spec.coreOuterCol];
+      if (f < -0.25) return ['+', 0.72, spec.coreCenterCol];
+      return ['*', 0.8, spec.coreOuterCol];
     }
-    if (rn < 0.35) return ['@', 0.9];
-    return [hash(Math.round(th * 12) * 3.3 + Math.round(r / 3)) > 0.5 ? '%' : '#', 0.55 + 0.25 * (1 - rn)];
+    if (rn < 0.35) return ['@', 1.0, spec.coreCenterCol];
+    return [
+      hash(Math.round(th * 12) * 3.3 + Math.round(r / 3)) > 0.5 ? '%' : '#',
+      0.82 + 0.18 * (1 - rn),
+      spec.coreOuterCol,
+    ];
   }
 
   // Rose: tightly wound spiral in the middle
@@ -244,13 +423,13 @@ const sampleHead = (
     const phi0 = ((th0 % TAU) + TAU) % TAU;
     const n = Math.round((r / b - phi0) / TAU);
     const phi = phi0 + n * TAU;
-    if (phi >= 0 && Math.abs(r - b * phi) < FW * 0.6) {
+    if (phi >= 0 && Math.abs(r - b * phi) < FW * 0.65) {
       const ang = phi + rotBase;
       const dx = b * Math.cos(ang) - b * phi * Math.sin(ang);
       const dy = b * Math.sin(ang) + b * phi * Math.cos(ang);
-      return [dirChar(dx, dy * SQUASH), 0.85];
+      return [dirChar(dx, dy * SQUASH), 1.0, spec.coreRimCol];
     }
-    return [r / rc < 0.5 ? ':' : '.', 0.3];
+    return [r / rc < 0.5 ? '+' : ':', 0.72, spec.coreCenterCol];
   }
 
   // Petal layers, innermost on top
@@ -282,13 +461,13 @@ export const renderFlower = (f: Flower, R: number, bloom: number, sp: Sprite, dp
   if (bloom <= 0.001) return;
 
   const spec = SPECS[f.kind];
-  const cells = new Map<number, { i: number; j: number; ch: string; a: number }>();
-  const set = (i: number, j: number, ch: string, a: number) => {
-    cells.set((i + 1000) * 10000 + (j + 5000), { i, j, ch, a });
+  const cells = new Map<number, { i: number; j: number; ch: string; a: number; col: string }>();
+  const set = (i: number, j: number, ch: string, a: number, col: string) => {
+    cells.set((i + 1000) * 10000 + (j + 5000), { i, j, ch, a, col });
   };
 
   const stemProg = easeOut(clamp(bloom / 0.45));
-  const headProg = clamp((bloom - 0.2) / 0.8);
+  const headProg = clamp((bloom - 0.15) / 0.85);
   const stemH = R * f.stem;
   const lean = f.lean;
 
@@ -320,23 +499,24 @@ export const renderFlower = (f: Flower, R: number, bloom: number, sp: Sprite, dp
     const ch = dirChar(d.x, d.y);
     const i = Math.round(p.x / FW);
     const j = Math.round(p.y / FH);
-    set(i, j, ch, 0.55);
-    if (t < 0.4) set(i + 1, j, ch, 0.35); // thicker towards the ground
+    set(i, j, ch, 0.92, COL_STEM_MAIN);
+    set(i + 1, j, ch, 0.68, COL_STEM_SHADE);
+    if (t < 0.5) set(i - 1, j, ch, 0.6, COL_STEM_SHADE); // fuller stalk
   }
 
   // ---- leaves ----
   const leaves = [
-    { s: 0.26, side: lean >= 0 ? -1 : 1 },
-    { s: 0.5, side: lean >= 0 ? 1 : -1 },
+    { s: 0.28, side: lean >= 0 ? -1 : 1 },
+    { s: 0.52, side: lean >= 0 ? 1 : -1 },
   ];
   leaves.forEach((ld, li) => {
-    const lp = easeOut(clamp((stemProg - 0.3 - li * 0.15) / 0.5));
+    const lp = easeOut(clamp((stemProg - 0.25 - li * 0.15) / 0.5));
     if (lp <= 0) return;
     const P = bez(ld.s);
     const ang = -Math.PI / 2 + ld.side * (1.05 - 0.15 * li);
     const ax = Math.cos(ang), ay = Math.sin(ang);
     const px = -ay, py = ax;
-    const Ll = R * 0.72 * lp;
+    const Ll = R * 0.78 * lp;
     const bend = 0.2 * ld.side;
     const cx = P.x + ax * Ll * 0.5;
     const cy = P.y + ay * Ll * 0.5;
@@ -350,27 +530,27 @@ export const renderFlower = (f: Flower, R: number, bloom: number, sp: Sprite, dp
         const t = u / Ll;
         if (t <= 0.02 || t >= 1) continue;
         const v = x * px + y * py - bend * Ll * t * t;
-        const hw = Ll * 0.26 * wfrac(t, 'pointed');
+        const hw = Ll * 0.27 * wfrac(t, 'pointed');
         const av = Math.abs(v);
         if (av > hw) continue;
         const sgn = v < 0 ? -1 : 1;
         const mid = 2 * bend * t;
 
         if ((1 - t) * Ll < FW) {
-          set(i, j, dirChar(px, py), 0.6);
-        } else if (hw - av < FW * 0.85) {
-          const ws = (0.26 * (wfrac(t + 0.01, 'pointed') - wfrac(t - 0.01, 'pointed'))) / 0.02;
+          set(i, j, dirChar(px, py), 0.94, COL_LEAF_EDGE);
+        } else if (hw - av < FW * 0.9) {
+          const ws = (0.27 * (wfrac(t + 0.01, 'pointed') - wfrac(t - 0.01, 'pointed'))) / 0.02;
           const sl = mid + sgn * ws;
-          set(i, j, dirChar(ax + px * sl, ay + py * sl), 0.6);
-        } else if (av < FW * 0.5 && t < 0.9) {
-          set(i, j, dirChar(ax + px * mid, ay + py * mid), 0.45);
+          set(i, j, dirChar(ax + px * sl, ay + py * sl), 0.94, COL_LEAF_EDGE);
+        } else if (av < FW * 0.55 && t < 0.9) {
+          set(i, j, dirChar(ax + px * mid, ay + py * mid), 0.85, COL_LEAF_VEIN);
         } else {
           const period = Ll * 0.14;
           const q = t * Ll - av * 1.4;
           if (fract(q / period) * period < FW * 0.85) {
-            set(i, j, dirChar(ax * 1.4 + px * sgn, ay * 1.4 + py * sgn), 0.32);
+            set(i, j, dirChar(ax * 1.4 + px * sgn, ay * 1.4 + py * sgn), 0.72, COL_LEAF_VEIN);
           } else {
-            set(i, j, (1 - av / hw) > 0.5 ? ':' : '.', 0.2);
+            set(i, j, (1 - av / hw) > 0.5 ? '+' : ':', 0.55, COL_LEAF_FILL);
           }
         }
       }
@@ -390,18 +570,22 @@ export const renderFlower = (f: Flower, R: number, bloom: number, sp: Sprite, dp
         const r = Math.hypot(dx, dy);
         if (r > ext) continue;
         const res = sampleHead(spec, R, r, Math.atan2(dy, dx), headProg, rotBase, f.seed);
-        if (res) set(i, j, res[0], res[1]);
+        if (res) set(i, j, res[0], res[1], res[2]);
       }
     }
   }
 
   // ---- draw ----
-  g.font = `${FS}px "Space Mono", monospace`;
+  g.font = `bold ${FS}px "Space Mono", monospace`;
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  g.fillStyle = '#fff';
-  cells.forEach(({ i, j, ch, a }) => {
+  let lastCol = '';
+  cells.forEach(({ i, j, ch, a, col }) => {
     if (ch === ' ') return;
+    if (col !== lastCol) {
+      g.fillStyle = col;
+      lastCol = col;
+    }
     g.globalAlpha = Math.min(1, a);
     g.fillText(ch, sp.ox + i * FW, sp.oy + j * FH);
   });
