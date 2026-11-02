@@ -17,8 +17,8 @@ const services = [
   },
   {
     n: '03',
-    title: 'Webshops',
-    text: 'Eigene Shops mit einem Checkout, der verkauft, und Anbindung an Ihre bestehenden Systeme.',
+    title: 'Design & Identität',
+    text: 'Visuelle Gestaltung, Typografie und durchdachte Nutzerführung, die Ihre Marke unverwechselbar machen.',
   },
   {
     n: '04',
