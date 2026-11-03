@@ -17,9 +17,8 @@ const FLOWERS: Flower[] = [
   { x: 0.35, y: 1.02, r: 110, kind: 'daisy', stem: 2.3, depth: 0.72, hero: true, lean: -0.35, seed: 2 },
   { x: 0.69, y: 0.95, r: 195, kind: 'rose', stem: 1.85, depth: 0.42, hero: true, lean: -0.5, seed: 3 },
   { x: 0.88, y: 1.04, r: 125, kind: 'anemone', stem: 2.2, depth: 0.65, hero: true, lean: 0.25, seed: 4 },
-  { x: 0.48, y: 0.31, r: 105, kind: 'daisy', stem: 1.35, depth: 1, hero: false, lean: -0.15, seed: 5, anchor: 'services-row-1' },
   { x: 0.85, y: 0.6, r: 155, kind: 'lotus', stem: 1.9, depth: 1, hero: false, lean: -0.35, seed: 6, anchor: 'statement' },
-  { x: 0.15, y: 0.76, r: 130, kind: 'anemone', stem: 2.0, depth: 1, hero: false, lean: 0.45, seed: 7 },
+  { x: 0.05, y: 0.83, r: 110, kind: 'anemone', stem: 2.0, depth: 1, hero: false, lean: 0.25, seed: 7 },
   { x: 0.85, y: 0.92, r: 145, kind: 'rose', stem: 1.9, depth: 1, hero: false, lean: -0.45, seed: 8 },
 ];
 

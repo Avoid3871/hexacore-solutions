@@ -35,13 +35,13 @@ export const Process = () => {
   }, []);
 
   return (
-    <section id="ablauf" ref={root} className="relative z-10 px-6 md:px-12 py-32 md:py-48">
-      <p className="font-mono text-xs uppercase tracking-widest text-white/50 mb-16">Ablauf</p>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-6">
+    <section id="ablauf" ref={root} className="relative z-10 px-5 py-24 sm:px-6 sm:py-32 md:px-12 md:py-48">
+      <p className="mb-10 font-mono text-[10px] uppercase tracking-widest text-white/50 sm:mb-16 sm:text-xs">Ablauf</p>
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-10 md:grid-cols-4 md:gap-6">
         {steps.map((s) => (
           <div key={s.n} className="pr-step border-t border-white/20 pt-6">
             <div className="font-mono text-xs text-white/50 mb-6">{s.n}</div>
-            <h3 className="text-2xl md:text-3xl font-semibold tracking-tight mb-3">{s.title}</h3>
+            <h3 className="mb-3 text-2xl font-semibold tracking-tight md:text-3xl">{s.title}</h3>
             <p className="text-white/60 leading-relaxed text-sm md:text-base">{s.text}</p>
           </div>
         ))}

@@ -44,9 +44,9 @@ export const Contact = () => {
     'w-full bg-transparent border-b border-white/25 focus:border-white outline-none py-4 text-lg placeholder:text-white/30 transition-colors';
 
   return (
-    <section id="kontakt" ref={root} className="relative z-10 px-6 md:px-12 pt-32 md:pt-48 pb-24">
-      <p className="font-mono text-xs uppercase tracking-widest text-white/50 mb-16">Kontakt</p>
-      <h2 className="ct-title font-bold tracking-tighter leading-[0.95] text-[clamp(2.5rem,9vw,8rem)] mb-20">
+    <section id="kontakt" ref={root} className="relative z-10 px-5 pb-20 pt-24 sm:px-6 sm:pb-24 sm:pt-32 md:px-12 md:pt-48">
+      <p className="mb-10 font-mono text-[10px] uppercase tracking-widest text-white/50 sm:mb-16 sm:text-xs">Kontakt</p>
+      <h2 className="ct-title mb-12 text-[clamp(2.5rem,9vw,8rem)] font-bold leading-[0.95] tracking-tighter sm:mb-20">
         <span className="block overflow-hidden pb-[0.08em]">
           <span className="ct-line block">Lassen Sie uns</span>
         </span>
@@ -55,7 +55,7 @@ export const Contact = () => {
         </span>
       </h2>
 
-      <form onSubmit={onSubmit} className="ct-form grid md:grid-cols-2 gap-x-12 gap-y-6 max-w-5xl">
+      <form onSubmit={onSubmit} className="ct-form grid max-w-5xl gap-x-12 gap-y-5 md:grid-cols-2 md:gap-y-6">
         <input className={field} name="name" placeholder="Name" required value={form.name} onChange={onChange} />
         <input
           className={field}
@@ -75,14 +75,14 @@ export const Contact = () => {
           value={form.message}
           onChange={onChange}
         />
-        <div className="md:col-span-2 flex flex-wrap items-center gap-8 pt-4">
+        <div className="flex flex-col items-stretch gap-5 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-8 md:col-span-2">
           <button
             type="submit"
-            className="px-8 py-4 bg-white text-black font-medium hover:bg-white/80 transition-colors"
+            className="min-h-12 bg-white px-7 py-3.5 font-medium text-black transition-colors hover:bg-white/80 sm:px-8 sm:py-4"
           >
             Anfrage senden
           </button>
-          <a href={`mailto:${EMAIL}`} className="text-white/60 hover:text-white transition-colors">
+          <a href={`mailto:${EMAIL}`} className="break-all text-sm text-white/60 transition-colors hover:text-white sm:text-base">
             {EMAIL}
           </a>
         </div>

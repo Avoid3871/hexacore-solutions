@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/create-404.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
+    "ascii-magic-art": "^1.1.0",
+    "ascii.rest": "^0.4.0",
     "gsap": "^3.15.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

@@ -35,19 +35,19 @@ export const LegalModal: React.FC<LegalModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-10 bg-black/85 backdrop-blur-md"
+      className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center overflow-y-auto p-3 sm:p-6 md:p-10 bg-black/85 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl max-h-[88vh] bg-black border border-white/20 p-6 sm:p-10 flex flex-col justify-between shadow-2xl text-white select-text"
+        className="relative my-3 sm:my-0 w-full max-w-4xl max-h-[calc(100svh-1.5rem)] sm:max-h-[88vh] bg-black border border-white/20 p-4 sm:p-10 flex flex-col justify-between shadow-2xl text-white select-text"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/15 pb-5">
-          <div className="flex items-center gap-2 sm:gap-4 font-mono text-xs uppercase">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-white/15 pb-4 sm:pb-5">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 font-mono text-[11px] sm:text-xs uppercase">
             <button
               onClick={() => onTabChange('impressum')}
-              className={`px-3 py-1.5 transition-colors border ${
+              className={`min-h-10 px-3 py-2 transition-colors border ${
                 activeTab === 'impressum'
                   ? 'bg-white text-black font-bold border-white'
                   : 'text-white/60 border-white/20 hover:border-white hover:text-white'
@@ -57,7 +57,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             </button>
             <button
               onClick={() => onTabChange('datenschutz')}
-              className={`px-3 py-1.5 transition-colors border ${
+              className={`min-h-10 px-3 py-2 transition-colors border ${
                 activeTab === 'datenschutz'
                   ? 'bg-white text-black font-bold border-white'
                   : 'text-white/60 border-white/20 hover:border-white hover:text-white'
@@ -67,7 +67,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             </button>
             <button
               onClick={() => onTabChange('agb')}
-              className={`px-3 py-1.5 transition-colors border ${
+              className={`min-h-10 px-3 py-2 transition-colors border ${
                 activeTab === 'agb'
                   ? 'bg-white text-black font-bold border-white'
                   : 'text-white/60 border-white/20 hover:border-white hover:text-white'
@@ -79,7 +79,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
 
           <button
             onClick={onClose}
-            className="font-mono text-xs uppercase tracking-widest px-3 py-1.5 border border-white/30 hover:border-white hover:bg-white hover:text-black transition-all flex items-center gap-1.5"
+            className="min-h-10 font-mono text-xs uppercase tracking-widest px-3 py-2 border border-white/30 hover:border-white hover:bg-white hover:text-black transition-all flex items-center gap-1.5"
             aria-label="Schließen"
           >
             <span>Schließen</span>
@@ -88,7 +88,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
         </div>
 
         {/* Scrollable Content Body */}
-        <div className="overflow-y-auto pr-2 sm:pr-4 py-6 space-y-8 text-sm text-white/80 leading-relaxed font-sans scrollbar-thin">
+        <div className="min-h-0 overflow-y-auto overflow-x-hidden break-words pr-1 sm:pr-4 py-5 sm:py-6 space-y-8 text-sm text-white/80 leading-relaxed font-sans scrollbar-thin">
           {activeTab === 'impressum' && (
             <div className="space-y-6">
               <div>

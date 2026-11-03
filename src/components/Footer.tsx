@@ -12,13 +12,9 @@ export const Footer = () => {
 
   return (
     <>
-      <footer className="relative z-10 px-6 md:px-12 py-10 border-t border-white/15 flex flex-wrap items-center justify-between gap-6 text-sm text-white/50 select-none">
+      <footer className="relative z-10 flex flex-col items-start justify-between gap-6 border-t border-white/15 px-5 py-8 text-xs text-white/50 select-none sm:flex-row sm:flex-wrap sm:items-center sm:px-6 sm:py-10 sm:text-sm md:px-12">
         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <span>© {new Date().getFullYear()} Hexacore Solutions</span>
-          <span className="hidden sm:inline text-white/20">|</span>
-          <span className="font-mono text-xs uppercase tracking-widest text-white/40">
-            Medienagentur // Berlin &amp; Remote
-          </span>
         </div>
 
         {/* Legal Links */}

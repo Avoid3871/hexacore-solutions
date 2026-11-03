@@ -31,6 +31,7 @@ export const Services = () => {
   const root = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
     const ctx = gsap.context(() => {
       gsap.utils.toArray<HTMLElement>('.sv-row').forEach((row) => {
         gsap.from(row, {
@@ -42,8 +43,8 @@ export const Services = () => {
         });
         gsap.fromTo(
           row.querySelector('.sv-title'),
-          { x: 40 },
-          { x: -40, ease: 'none', scrollTrigger: { trigger: row, start: 'top bottom', end: 'bottom top', scrub: true } }
+          { x: isMobile ? 10 : 40 },
+          { x: isMobile ? -10 : -40, ease: 'none', scrollTrigger: { trigger: row, start: 'top bottom', end: 'bottom top', scrub: true } }
         );
       });
       gsap.from('.sv-head', {
@@ -58,15 +59,15 @@ export const Services = () => {
   }, []);
 
   return (
-    <section id="leistungen" ref={root} className="relative z-10 px-6 md:px-12 py-32 md:py-48">
-      <p className="sv-head font-mono text-xs uppercase tracking-widest text-white/50 mb-16">Leistungen</p>
+    <section id="leistungen" ref={root} className="relative z-10 px-5 py-24 sm:px-6 sm:py-32 md:px-12 md:py-48">
+      <p className="sv-head mb-10 font-mono text-[10px] uppercase tracking-widest text-white/50 sm:mb-16 sm:text-xs">Leistungen</p>
       <div className="divide-y divide-white/15 border-y border-white/15">
         {services.map((s) => (
-          <div key={s.n} className="sv-row grid grid-cols-12 items-center gap-6 py-12 md:py-16">
+          <div key={s.n} className="sv-row grid grid-cols-12 items-center gap-4 py-9 sm:gap-6 sm:py-12 md:py-16">
             <div className="col-span-12 md:col-span-2">
               <div
                 data-ring
-                className="w-20 h-20 rounded-full flex items-center justify-center font-mono text-sm text-white/80"
+                className="flex h-14 w-14 items-center justify-center rounded-full font-mono text-xs text-white/80 sm:h-20 sm:w-20 sm:text-sm"
               >
                 {s.n}
               </div>
